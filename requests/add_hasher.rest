@@ -1,8 +1,7 @@
-POST http://localhost:3001/api/notes
+POST http://localhost:3001/api/hashers
 Content-Type: application/json
 
   {
-    "id": 5,
-    "content": "Browser can execute only JavaScript",
-    "important": false
+    "hashName": "Jdt",
+    "mortalName": "fadse"
   }

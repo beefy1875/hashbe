@@ -1,6 +1,9 @@
+require('dotenv').config()
 const express = require('express')
 const app = express()
 const cors = require('cors')
+
+const Hasher = require('./models/hasher')
 
 const requestLogger = (req, res, next) => {
     console.log('Method: ', req.method)
@@ -19,58 +22,47 @@ app.use(express.json())
 app.use(requestLogger)
 app.use(express.static('dist'))
 
-let notes = [
-  {
-    id: 1,
-    hashname: "Don Salami",
-    important: true
-  },
-  {
-    id: 2,
-    hashname: "Standardized Pest",
-    important: false
-  },
-  {
-    id: 3,
-    hashname: "GET and POST are the most important methods of HTTP protocol",
-    important: true
-  }
-]
-
 app.get('/', (req, res) => {
     res.send('<h1>Hashers unite</h1>')
 })
 
-app.get('/api/notes', (req, res) => {
-    res.json(notes)
+app.get('/api/hashers', (req, res) => {
+    Hasher.find({}).then(hashers => {res.json(hashers)})
 })
 
-app.get('/api/notes/:id', (req, res) => {
-    const id = Number(req.params.id)
-    const note = notes.find(note => note.id === id)
-    if (note) {
-        res.json(note)
-    } else {
-        res.status(404).end()
-    }
+app.get('/api/hashers/:id', (req, res) => {
+    Hasher.findById(req.params.id).then(hasher => {
+        res.json(hasher)
+    })
 })
 
-app.delete('/api/notes/:id', (req, res) => {
+app.delete('/api/hashers/:id', (req, res) => {
     const id = Number(req.params.id)
     notes = notes.filter(note => note.id !== id)
 
     res.status(204).end()
 })
 
-app.post('/api/notes', (req, res) => {
-    const note = req.body
-    console.log('note', note)
-    res.json(note)
+app.post('/api/hashers', (req, res) => {
+    const body = req.body
+
+    if (body.hashName === undefined) {
+        return res.status(400).json({ error: 'name not given'})
+    }
+
+    const hasher = new Hasher({
+        hashName: body.hashName,
+        mortalName: body.mortalName,   
+    })
+
+    hasher.save().then(savedHasher => {
+        res.json(savedHasher)
+    })
 })
 
 app.use(unknownEndpoint)
 
-const PORT = process.env.PORT || 3001
+const PORT = process.env.PORT
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`)
 })
